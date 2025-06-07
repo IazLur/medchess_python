@@ -192,6 +192,77 @@ class NetworkGameGUI(tk.Tk):
         self.draw_board()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
+    def load_images(self) -> None:
+        img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "images")
+        mapping = {
+            PieceType.SWORDSMAN: "epeiste.png",
+            PieceType.KNIGHT: "chevalier.png",
+            PieceType.GENERAL: "general.png",
+            PieceType.CASTLE: "chateau.png",
+        }
+        for ptype, filename in mapping.items():
+            path = os.path.join(img_dir, filename)
+            base = (
+                Image.open(path)
+                .resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
+                .convert("RGBA")
+            )
+            blue_overlay = Image.new("RGBA", base.size, (0, 0, 255, 80))
+            red_overlay = Image.new("RGBA", base.size, (255, 0, 0, 80))
+            blue_img = Image.alpha_composite(base, blue_overlay)
+            red_img = Image.alpha_composite(base, red_overlay)
+            self.images[(ptype, 0)] = ImageTk.PhotoImage(blue_img)
+            self.images[(ptype, 1)] = ImageTk.PhotoImage(red_img)
+
+    def draw_board(self) -> None:
+        self.canvas.delete("all")
+        for r in range(BOARD_HEIGHT):
+            for c in range(BOARD_WIDTH):
+                x1 = c * CELL_SIZE
+                y1 = r * CELL_SIZE
+                x2 = x1 + CELL_SIZE
+                y2 = y1 + CELL_SIZE
+                fill = "#EEE" if (r + c) % 2 else "#AAA"
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill=fill)
+                piece = self.board.get_piece(r, c)
+                if piece:
+                    img = self.images.get((piece.type, piece.player))
+                    if img:
+                        self.canvas.create_image(
+                            x1 + CELL_SIZE / 2,
+                            y1 + CELL_SIZE / 2,
+                            image=img,
+                        )
+        if self.selected:
+            r, c = self.selected
+            x1 = c * CELL_SIZE
+            y1 = r * CELL_SIZE
+            x2 = x1 + CELL_SIZE
+            y2 = y1 + CELL_SIZE
+            self.canvas.create_rectangle(x1, y1, x2, y2, outline="blue", width=3)
+
+    def animate_move(self, move) -> None:
+        fr, fc, tr, tc = move
+        piece = self.board.get_piece(fr, fc)
+        if not piece:
+            return
+        img = self.images.get((piece.type, piece.player))
+        if not img:
+            return
+        start_x = fc * CELL_SIZE + CELL_SIZE / 2
+        start_y = fr * CELL_SIZE + CELL_SIZE / 2
+        end_x = tc * CELL_SIZE + CELL_SIZE / 2
+        end_y = tr * CELL_SIZE + CELL_SIZE / 2
+        item = self.canvas.create_image(start_x, start_y, image=img)
+        steps = 10
+        dx = (end_x - start_x) / steps
+        dy = (end_y - start_y) / steps
+        for _ in range(steps):
+            self.canvas.move(item, dx, dy)
+            self.canvas.update()
+            time.sleep(0.03)
+        self.canvas.delete(item)
+
     def on_close(self) -> None:
         self.running = False
         try:
