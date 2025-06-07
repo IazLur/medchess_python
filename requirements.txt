@@ -1,0 +1,5 @@
+stable-baselines3
+gym
+numpy
+torch
+shimmy>=2.0
