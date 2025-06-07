@@ -46,8 +46,17 @@ class GameGUI(tk.Tk):
         }
         for ptype, filename in mapping.items():
             path = os.path.join(img_dir, filename)
-            img = Image.open(path).resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
-            self.images[ptype] = ImageTk.PhotoImage(img)
+            base = (
+                Image.open(path)
+                .resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
+                .convert("RGBA")
+            )
+            blue_overlay = Image.new("RGBA", base.size, (0, 0, 255, 80))
+            red_overlay = Image.new("RGBA", base.size, (255, 0, 0, 80))
+            blue_img = Image.alpha_composite(base, blue_overlay)
+            red_img = Image.alpha_composite(base, red_overlay)
+            self.images[(ptype, 0)] = ImageTk.PhotoImage(blue_img)
+            self.images[(ptype, 1)] = ImageTk.PhotoImage(red_img)
 
     def draw_board(self) -> None:
         self.canvas.delete("all")
@@ -61,7 +70,7 @@ class GameGUI(tk.Tk):
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=fill)
                 piece = self.board.get_piece(r, c)
                 if piece:
-                    img = self.images.get(piece.type)
+                    img = self.images.get((piece.type, piece.player))
                     if img:
                         self.canvas.create_image(
                             x1 + CELL_SIZE / 2,
@@ -81,7 +90,7 @@ class GameGUI(tk.Tk):
         piece = self.board.get_piece(fr, fc)
         if not piece:
             return
-        img = self.images.get(piece.type)
+        img = self.images.get((piece.type, piece.player))
         if not img:
             return
         start_x = fc * CELL_SIZE + CELL_SIZE / 2
