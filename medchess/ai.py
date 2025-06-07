@@ -1,6 +1,7 @@
 import os
 import random
-from typing import Optional
+import time
+from typing import Optional, Tuple
 
 import gym
 import numpy as np
@@ -87,7 +88,101 @@ class AIPlayer:
             self.model = DQN.load(model_path)
         self.env = MedChessEnv()
 
-    def choose_move(self, board: Board, player: int) -> Optional[Move]:
+    def _evaluate(self, board: Board, player: int) -> int:
+        values = {
+            PieceType.SWORDSMAN: 1,
+            PieceType.KNIGHT: 3,
+            PieceType.GENERAL: 5,
+            PieceType.CASTLE: 100,
+        }
+        score = 0
+        has_castle = [False, False]
+        for r in range(BOARD_HEIGHT):
+            for c in range(BOARD_WIDTH):
+                piece = board.get_piece(r, c)
+                if piece:
+                    if piece.type == PieceType.CASTLE:
+                        has_castle[piece.player] = True
+                    val = values[piece.type]
+                    if piece.player == player:
+                        score += val
+                    else:
+                        score -= val
+        if not has_castle[player]:
+            return -1000
+        if not has_castle[1 - player]:
+            return 1000
+        return score
+
+    def _search(
+        self,
+        board: Board,
+        player: int,
+        depth: int,
+        start: float,
+        max_time: Optional[int],
+        maximizing: bool,
+        root_player: int,
+    ) -> Tuple[int, Optional[Move]]:
+        if max_time is not None and time.time() - start >= max_time:
+            raise TimeoutError
+        if depth == 0:
+            return self._evaluate(board, root_player), None
+        moves = legal_moves(board, player)
+        if not moves:
+            return self._evaluate(board, root_player), None
+        best_move = None
+        if maximizing:
+            best_val = -float("inf")
+            for mv in moves:
+                nb = board.copy()
+                nb.move_piece(mv)
+                try:
+                    val, _ = self._search(nb, 1 - player, depth - 1, start, max_time, False, root_player)
+                except TimeoutError:
+                    raise
+                if val > best_val:
+                    best_val = val
+                    best_move = mv
+            return best_val, best_move
+        else:
+            best_val = float("inf")
+            for mv in moves:
+                nb = board.copy()
+                nb.move_piece(mv)
+                try:
+                    val, _ = self._search(nb, 1 - player, depth - 1, start, max_time, True, root_player)
+                except TimeoutError:
+                    raise
+                if val < best_val:
+                    best_val = val
+                    best_move = mv
+            return best_val, best_move
+
+    def choose_move(
+        self,
+        board: Board,
+        player: int,
+        power: int = 1,
+        max_time: Optional[int] = None,
+    ) -> Optional[Move]:
+        power = max(1, min(10, power))
+        start = time.time()
+        best_move = None
+        for depth in range(1, power + 1):
+            try:
+                val, move = self._search(board, player, depth, start, max_time, True, player)
+                best_move = move if move is not None else best_move
+            except TimeoutError:
+                break
+        if best_move is not None:
+            return best_move
+        moves = legal_moves(board, player)
+        if moves:
+            return random.choice(moves)
+        return None
+
+    def choose_move_rl(self, board: Board, player: int) -> Optional[Move]:
         self.env.board = board.copy()
         self.env.current_player = player
         state = self.env._get_obs()

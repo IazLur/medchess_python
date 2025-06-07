@@ -10,7 +10,7 @@ from .ai import AIPlayer
 CELL_SIZE = 60
 
 class GameGUI(tk.Tk):
-    def __init__(self) -> None:
+    def __init__(self, power: int = 1, max_time: int = 30) -> None:
         super().__init__()
         self.title("MedChess")
         self.resizable(False, False)
@@ -18,6 +18,8 @@ class GameGUI(tk.Tk):
         self.board = Board()
         model_path = os.path.join(os.path.dirname(__file__), 'model.zip')
         self.ai = AIPlayer(model_path)
+        self.power = power
+        self.max_time = max_time
         self.current_player = 0
         self.selected = None
 
@@ -87,7 +89,7 @@ class GameGUI(tk.Tk):
         self.draw_board()
 
     def ai_move(self) -> None:
-        move = self.ai.choose_move(self.board, 1)
+        move = self.ai.choose_move(self.board, 1, power=self.power, max_time=self.max_time)
         if move is None:
             messagebox.showinfo("Victoire", "Le bot ne peut jouer. Vous gagnez !")
             self.destroy()
@@ -103,10 +105,17 @@ class GameGUI(tk.Tk):
         self.draw_board()
 
 
-def play_gui() -> None:
-    app = GameGUI()
+def play_gui(power: int = 1, max_time: int = 30) -> None:
+    app = GameGUI(power=power, max_time=max_time)
     app.mainloop()
 
 if __name__ == "__main__":
-    play_gui()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Interface graphique de MedChess")
+    parser.add_argument("-power", type=int, default=1, help="Profondeur de recherche de l'IA (1-10)")
+    parser.add_argument("-max", type=int, default=30, help="Temps de réflexion maximum en secondes")
+    args = parser.parse_args()
+
+    play_gui(power=args.power, max_time=args.max)
 
