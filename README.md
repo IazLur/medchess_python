@@ -5,6 +5,16 @@ Un bot basé sur l'apprentissage par renforcement (DQN) est fourni pour affronte
 Le plateau débute avec, côté IA, deux rangées de pièces : des chevaliers encadrant un général, un château et un second général, puis une ligne d'épéistes. Le joueur dispose de la même formation en bas du plateau.
 L'IA choisit au hasard une personnalité (Aggressive, Équilibré ou Défensif) qui oriente ses premiers coups grâce à de petites ouvertures prédéfinies.
 
+## Système de points
+
+L'évaluation de l'IA repose sur un système simple :
+
+- un épéiste ou un chevalier vaut **1 point** lorsqu'il est capturé ;
+- un général vaut **2,5 points** ;
+- l'avancement d'un épéiste vers le château adverse rapporte **0,1 point** par case parcourue (et en perdre autant en reculant).
+
+Ces valeurs permettent au bot de privilégier les échanges avantageux et de gagner de l'espace vers le château adverse.
+
 ## Installation
 
 Installez les dépendances avec `pip` :
