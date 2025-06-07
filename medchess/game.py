@@ -29,7 +29,7 @@ def parse_move(text: str) -> Optional[tuple[int, int, int, int]]:
     except Exception:
         return None
 
-def play() -> None:
+def play(power: int = 1, max_time: int = TIME_LIMIT) -> None:
     board = Board()
     ai = AIPlayer(os.path.join(os.path.dirname(__file__), 'model.zip'))
     current_player = 0
@@ -37,7 +37,7 @@ def play() -> None:
         print(board.render())
         if current_player == 0:
             try:
-                user_move = timed_input('Votre coup (fr fc tr tc): ', TIME_LIMIT)
+                user_move = timed_input('Votre coup (fr fc tr tc): ', max_time)
             except TimeoutException:
                 print('Temps écoulé ! Vous avez perdu.')
                 return
@@ -52,7 +52,7 @@ def play() -> None:
                 print('Vous avez capturé le chateau adverse. Vous gagnez !')
                 return
         else:
-            move = ai.choose_move(board, current_player)
+            move = ai.choose_move(board, current_player, power=power, max_time=max_time)
             if move is None:
                 print('Le bot ne peut jouer. Vous gagnez !')
                 return
@@ -64,3 +64,13 @@ def play() -> None:
                 print('Le bot capture votre chateau. Vous perdez !')
                 return
         current_player = 1 - current_player
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Play MedChess in the terminal")
+    parser.add_argument("-power", type=int, default=1, help="Profondeur de recherche de l'IA (1-10)")
+    parser.add_argument("-max", type=int, default=TIME_LIMIT, help="Temps de réflexion maximum en secondes")
+    args = parser.parse_args()
+
+    play(power=args.power, max_time=args.max)

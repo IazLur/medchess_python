@@ -14,8 +14,9 @@ pip install -r requirements.txt
 ## Lancement d'une partie
 
 ```bash
-python -m medchess.game
+python -m medchess.game [-power N] [-max SECONDES]
 ```
+`power` contrôle la profondeur de recherche du bot (1 à 10) et `max` le temps de réflexion maximum en secondes (30 par défaut).
 
 Le joueur humain dispose de 30 secondes pour saisir un coup sous la forme :
 
@@ -33,5 +34,6 @@ Le modèle du bot est entraîné automatiquement si aucun fichier `model.zip` n'
 Une interface utilisant Tkinter permet de jouer de façon visuelle. Lancez-la avec :
 
 ```bash
-python -m medchess.gui
+python -m medchess.gui [-power N] [-max SECONDES]
 ```
+Les mêmes options `power` et `max` sont disponibles pour ajuster la force du bot.
