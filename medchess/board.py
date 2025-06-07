@@ -27,18 +27,24 @@ class Board:
             for cell in row:
                 cell.piece = None
         # Setup initial pieces
-        setup = [
-            Piece(PieceType.SWORDSMAN, 0),
-            Piece(PieceType.SWORDSMAN, 0),
-            Piece(PieceType.GENERAL, 0),
-            Piece(PieceType.CASTLE, 0),
-            Piece(PieceType.GENERAL, 0),
-            Piece(PieceType.SWORDSMAN, 0),
-            Piece(PieceType.SWORDSMAN, 0),
+        first_row = [
+            PieceType.KNIGHT,
+            PieceType.KNIGHT,
+            PieceType.GENERAL,
+            PieceType.CASTLE,
+            PieceType.GENERAL,
+            PieceType.KNIGHT,
+            PieceType.KNIGHT,
         ]
-        for c, piece in enumerate(setup):
-            self.grid[0][c].piece = piece
-            self.grid[BOARD_HEIGHT - 1][c].piece = Piece(piece.type, 1)
+        for c, t in enumerate(first_row):
+            # IA pieces (player 1) occupy the top of the board
+            self.grid[0][c].piece = Piece(t, 1)
+            # Player pieces (player 0) occupy the bottom
+            self.grid[BOARD_HEIGHT - 1][c].piece = Piece(t, 0)
+
+        for c in range(BOARD_WIDTH):
+            self.grid[1][c].piece = Piece(PieceType.SWORDSMAN, 1)
+            self.grid[BOARD_HEIGHT - 2][c].piece = Piece(PieceType.SWORDSMAN, 0)
 
     def in_bounds(self, r: int, c: int) -> bool:
         return 0 <= r < BOARD_HEIGHT and 0 <= c < BOARD_WIDTH
