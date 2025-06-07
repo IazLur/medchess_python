@@ -98,14 +98,14 @@ class AIPlayer:
         self.turn_count = 0
         print(f"Personnalité de l'IA : {self.personality}")
 
-    def _evaluate(self, board: Board, player: int) -> int:
+    def _evaluate(self, board: Board, player: int) -> float:
         values = {
             PieceType.SWORDSMAN: 1,
-            PieceType.KNIGHT: 3,
-            PieceType.GENERAL: 5,
+            PieceType.KNIGHT: 1,
+            PieceType.GENERAL: 2.5,
             PieceType.CASTLE: 100,
         }
-        score = 0
+        score = 0.0
         has_castle = [False, False]
         for r in range(BOARD_HEIGHT):
             for c in range(BOARD_WIDTH):
@@ -114,6 +114,11 @@ class AIPlayer:
                     if piece.type == PieceType.CASTLE:
                         has_castle[piece.player] = True
                     val = values[piece.type]
+                    if piece.type == PieceType.SWORDSMAN:
+                        if piece.player == 0:
+                            val += (BOARD_HEIGHT - 2 - r) * 0.1
+                        else:
+                            val += (r - 1) * 0.1
                     if piece.player == player:
                         score += val
                     else:
@@ -133,12 +138,23 @@ class AIPlayer:
         max_time: Optional[int],
         maximizing: bool,
         root_player: int,
-    ) -> Tuple[int, Optional[Move]]:
+    ) -> Tuple[float, Optional[Move]]:
         if max_time is not None and time.time() - start >= max_time:
             raise TimeoutError
         if depth == 0:
             return self._evaluate(board, root_player), None
         moves = legal_moves(board, player)
+        values_capture = {
+            PieceType.SWORDSMAN: 1,
+            PieceType.KNIGHT: 1,
+            PieceType.GENERAL: 2.5,
+            PieceType.CASTLE: 100,
+        }
+        def capture_value(mv: Move) -> float:
+            fr, fc, tr, tc = mv
+            target = board.get_piece(tr, tc)
+            return values_capture.get(target.type, 0) if target else 0
+        moves.sort(key=capture_value, reverse=True)
         if not moves:
             return self._evaluate(board, root_player), None
         best_move = None
