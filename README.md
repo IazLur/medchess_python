@@ -11,7 +11,8 @@ L'évaluation de l'IA repose sur un système simple :
 
 - un épéiste ou un chevalier vaut **1 point** lorsqu'il est capturé ;
 - un général vaut **2,5 points** ;
-- l'avancement d'un épéiste vers le château adverse rapporte **0,1 point** par case parcourue (et en perdre autant en reculant).
+- un château vaut **1000 points** ;
+- l'avancement d'une pièce vers le château adverse rapporte **0,1 point** par case parcourue (et en perdre autant en reculant).
 
 Ces valeurs permettent au bot de privilégier les échanges avantageux et de gagner de l'espace vers le château adverse.
 
