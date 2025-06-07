@@ -1,4 +1,5 @@
 import os
+import random
 from typing import Optional
 
 import gym
@@ -94,4 +95,8 @@ class AIPlayer:
         move = self.env._decode_action(int(action))
         if move in legal_moves(board, player):
             return move
+        # If the predicted move is illegal, fall back to a random legal move
+        moves = legal_moves(board, player)
+        if moves:
+            return random.choice(moves)
         return None
