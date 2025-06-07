@@ -2,6 +2,8 @@
 
 Ce projet implémente un jeu inspiré des échecs sur une grille 7x6 avec des pièces personnalisées.
 Un bot basé sur l'apprentissage par renforcement (DQN) est fourni pour affronter le joueur humain.
+Le plateau débute avec, côté IA, deux rangées de pièces : des chevaliers encadrant un général, un château et un second général, puis une ligne d'épéistes. Le joueur dispose de la même formation en bas du plateau.
+L'IA choisit au hasard une personnalité (Aggressive, Équilibré ou Défensif) qui oriente ses premiers coups grâce à de petites ouvertures prédéfinies.
 
 ## Installation
 

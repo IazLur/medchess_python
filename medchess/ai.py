@@ -80,6 +80,13 @@ def train(path: str, timesteps: int = 10000) -> None:
     model.save(path)
 
 class AIPlayer:
+    PERSONALITIES = ["Aggressive", "Equilibré", "Défensif"]
+    OPENINGS = {
+        "Aggressive": [(1, 3, 2, 3)],
+        "Equilibré": [(0, 1, 1, 2)],
+        "Défensif": [(0, 0, 1, 1)],
+    }
+
     def __init__(self, model_path: str):
         if os.path.exists(model_path):
             self.model = DQN.load(model_path)
@@ -87,6 +94,9 @@ class AIPlayer:
             train(model_path, 1000)
             self.model = DQN.load(model_path)
         self.env = MedChessEnv()
+        self.personality = random.choice(self.PERSONALITIES)
+        self.turn_count = 0
+        print(f"Personnalité de l'IA : {self.personality}")
 
     def _evaluate(self, board: Board, player: int) -> int:
         values = {
@@ -167,6 +177,14 @@ class AIPlayer:
         max_time: Optional[int] = None,
     ) -> Optional[Move]:
         power = max(1, min(10, power))
+        moves = legal_moves(board, player)
+
+        if self.turn_count < len(self.OPENINGS[self.personality]) and len(moves) >= 5:
+            opening = self.OPENINGS[self.personality][self.turn_count]
+            if opening in moves:
+                self.turn_count += 1
+                return opening
+
         start = time.time()
         best_move = None
         for depth in range(1, power + 1):
@@ -176,9 +194,10 @@ class AIPlayer:
             except TimeoutError:
                 break
         if best_move is not None:
+            self.turn_count += 1
             return best_move
-        moves = legal_moves(board, player)
         if moves:
+            self.turn_count += 1
             return random.choice(moves)
         return None
 
