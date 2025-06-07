@@ -27,3 +27,11 @@ Où `fr`/`fc` représentent la case de départ et `tr`/`tc` la case d'arrivée (
 Si le temps imparti est dépassé ou si un coup invalide est joué, la partie est perdue.
 
 Le modèle du bot est entraîné automatiquement si aucun fichier `model.zip` n'est présent.
+
+## Interface graphique
+
+Une interface utilisant Tkinter permet de jouer de façon visuelle. Lancez-la avec :
+
+```bash
+python -m medchess.gui
+```
