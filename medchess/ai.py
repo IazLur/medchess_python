@@ -103,7 +103,7 @@ class AIPlayer:
             PieceType.SWORDSMAN: 1,
             PieceType.KNIGHT: 1,
             PieceType.GENERAL: 2.5,
-            PieceType.CASTLE: 100,
+            PieceType.CASTLE: 1000,
         }
         score = 0.0
         has_castle = [False, False]
@@ -114,11 +114,15 @@ class AIPlayer:
                     if piece.type == PieceType.CASTLE:
                         has_castle[piece.player] = True
                     val = values[piece.type]
-                    if piece.type == PieceType.SWORDSMAN:
-                        if piece.player == 0:
-                            val += (BOARD_HEIGHT - 2 - r) * 0.1
+                    if piece.type != PieceType.CASTLE:
+                        if piece.type == PieceType.SWORDSMAN:
+                            start_row = BOARD_HEIGHT - 2 if piece.player == 0 else 1
                         else:
-                            val += (r - 1) * 0.1
+                            start_row = BOARD_HEIGHT - 1 if piece.player == 0 else 0
+                        if piece.player == 0:
+                            val += (start_row - r) * 0.1
+                        else:
+                            val += (r - start_row) * 0.1
                     if piece.player == player:
                         score += val
                     else:
@@ -148,7 +152,7 @@ class AIPlayer:
             PieceType.SWORDSMAN: 1,
             PieceType.KNIGHT: 1,
             PieceType.GENERAL: 2.5,
-            PieceType.CASTLE: 100,
+            PieceType.CASTLE: 1000,
         }
         def capture_value(mv: Move) -> float:
             fr, fc, tr, tc = mv
