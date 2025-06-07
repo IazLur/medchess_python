@@ -1,9 +1,12 @@
 # GUI for MedChess
 import os
+import time
 import tkinter as tk
 from tkinter import messagebox
+from PIL import Image, ImageTk
 
 from .board import Board, BOARD_WIDTH, BOARD_HEIGHT
+from .pieces import PieceType
 from .rules import legal_moves
 from .ai import AIPlayer
 
@@ -22,6 +25,8 @@ class GameGUI(tk.Tk):
         self.max_time = max_time
         self.current_player = 0
         self.selected = None
+        self.images = {}
+        self.load_images()
 
         canvas_width = BOARD_WIDTH * CELL_SIZE
         canvas_height = BOARD_HEIGHT * CELL_SIZE
@@ -30,6 +35,19 @@ class GameGUI(tk.Tk):
         self.canvas.bind("<Button-1>", self.on_click)
 
         self.draw_board()
+
+    def load_images(self) -> None:
+        img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "images")
+        mapping = {
+            PieceType.SWORDSMAN: "epeiste.png",
+            PieceType.KNIGHT: "chevalier.png",
+            PieceType.GENERAL: "general.png",
+            PieceType.CASTLE: "chateau.png",
+        }
+        for ptype, filename in mapping.items():
+            path = os.path.join(img_dir, filename)
+            img = Image.open(path).resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
+            self.images[ptype] = ImageTk.PhotoImage(img)
 
     def draw_board(self) -> None:
         self.canvas.delete("all")
@@ -43,14 +61,13 @@ class GameGUI(tk.Tk):
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=fill)
                 piece = self.board.get_piece(r, c)
                 if piece:
-                    color = "black" if piece.player == 0 else "red"
-                    self.canvas.create_text(
-                        x1 + CELL_SIZE / 2,
-                        y1 + CELL_SIZE / 2,
-                        text=piece.type.value,
-                        fill=color,
-                        font=("Arial", int(CELL_SIZE / 2)),
-                    )
+                    img = self.images.get(piece.type)
+                    if img:
+                        self.canvas.create_image(
+                            x1 + CELL_SIZE / 2,
+                            y1 + CELL_SIZE / 2,
+                            image=img,
+                        )
         if self.selected:
             r, c = self.selected
             x1 = c * CELL_SIZE
@@ -58,6 +75,28 @@ class GameGUI(tk.Tk):
             x2 = x1 + CELL_SIZE
             y2 = y1 + CELL_SIZE
             self.canvas.create_rectangle(x1, y1, x2, y2, outline="blue", width=3)
+
+    def animate_move(self, move) -> None:
+        fr, fc, tr, tc = move
+        piece = self.board.get_piece(fr, fc)
+        if not piece:
+            return
+        img = self.images.get(piece.type)
+        if not img:
+            return
+        start_x = fc * CELL_SIZE + CELL_SIZE / 2
+        start_y = fr * CELL_SIZE + CELL_SIZE / 2
+        end_x = tc * CELL_SIZE + CELL_SIZE / 2
+        end_y = tr * CELL_SIZE + CELL_SIZE / 2
+        item = self.canvas.create_image(start_x, start_y, image=img)
+        steps = 10
+        dx = (end_x - start_x) / steps
+        dy = (end_y - start_y) / steps
+        for _ in range(steps):
+            self.canvas.move(item, dx, dy)
+            self.canvas.update()
+            time.sleep(0.03)
+        self.canvas.delete(item)
 
     def on_click(self, event) -> None:
         c = event.x // CELL_SIZE
@@ -74,6 +113,7 @@ class GameGUI(tk.Tk):
                 move = (fr, fc, r, c)
                 if move in legal_moves(self.board, 0):
                     target = self.board.get_piece(r, c)
+                    self.animate_move(move)
                     self.board.move_piece(move)
                     self.selected = None
                     if target and target.type.value == 'C':
@@ -96,6 +136,7 @@ class GameGUI(tk.Tk):
             return
         fr, fc, tr, tc = move
         target = self.board.get_piece(tr, tc)
+        self.animate_move(move)
         self.board.move_piece(move)
         if target and target.type.value == 'C':
             messagebox.showinfo("Défaite", "Le bot capture votre chateau.")

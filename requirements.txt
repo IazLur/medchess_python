@@ -3,3 +3,4 @@ gym
 numpy
 torch
 shimmy>=2.0
+pillow
