@@ -49,3 +49,15 @@ Une interface utilisant Tkinter permet de jouer de façon visuelle. Lancez-la av
 python -m medchess.gui [-power N] [-max SECONDES]
 ```
 Les mêmes options `power` et `max` sont disponibles pour ajuster la force du bot.
+
+Les pièces du joueur apparaissent en bleu dans l'interface, celles de l'adversaire en rouge pour mieux les distinguer.
+
+## Entraînement du modèle
+
+Un utilitaire permet d'entraîner le bot manuellement :
+
+```bash
+python -m medchess.train [-max SECONDES]
+```
+
+L'option `-max` limite la durée de l'apprentissage (30 secondes par défaut). Le modèle est sauvegardé dans `medchess/model.zip` et l'entraînement peut être repris en relançant la même commande.
